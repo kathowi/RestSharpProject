@@ -11,19 +11,27 @@ namespace RestSharpProject
     [TestFixture]
     public class DummyTests
     {
+        RestClient client = new RestClient("https://objwsw.azurewebsites.net/api/addresses");
+        int successCode200 = 200;
+        int successCode201 = 201;
+        int notFoundCode404 = 404;
+        string expectedMessage = "Request failed with status code NotFound";
+
+        [SetUp]
+        public void BeforeEach()
+        {
+            client.Authenticator = new HttpBasicAuthenticator("testuser", "testuser");
+        }
+
         [Test]
         public async Task CheckGetAddressessTest()
         {
-            int successCode = 200;
-            var client = new RestClient("https://objwsw.azurewebsites.net/api/addresses");
-            client.Authenticator = new HttpBasicAuthenticator("testuser", "testuser");
-
             var request = new RestRequest();
             var response = await client.GetAsync(request);
             var statusCode = response.StatusCode;
             int numericStatusCode = (int)statusCode;
 
-            numericStatusCode.Should().Be(successCode);
+            numericStatusCode.Should().Be(successCode200);
         }
 
         [Test]
@@ -34,8 +42,6 @@ namespace RestSharpProject
             string expectedCity = "Test";
             string expectedPostalCode = "20-653";
             string expectedCountry = "Test";
-            var client = new RestClient("https://objwsw.azurewebsites.net/api/addresses");
-            client.Authenticator = new HttpBasicAuthenticator("testuser", "testuser");
 
             var request = new RestRequest($"/{id}");
             var response = await client.GetAsync(request);
@@ -51,7 +57,6 @@ namespace RestSharpProject
         [Test]
         public async Task CheckPostAddressTest()
         {
-            int successCode = 201;
             string street = "Kwiatowa";
             string postalCode = "20-653";
             string city = "Wroclaw";
@@ -65,9 +70,6 @@ namespace RestSharpProject
                 Country = country
             };
 
-            var client = new RestClient("https://objwsw.azurewebsites.net/api/addresses");
-            client.Authenticator = new HttpBasicAuthenticator("testuser", "testuser");
-
             var request = new RestRequest().AddJsonBody(address);
             var response = await client.PostAsync(request);
             var responseBody = response.Content;
@@ -75,8 +77,7 @@ namespace RestSharpProject
             var statusCode = response.StatusCode;
             int numericStatusCode = (int)statusCode;
 
-            numericStatusCode.Should().Be(successCode);
-            numericStatusCode.Should().Be(successCode);
+            numericStatusCode.Should().Be(successCode201);
             actualAddress.Street.Should().Be(street);
             actualAddress.PostalCode.Should().Be(postalCode);
             actualAddress.City.Should().Be(city);
@@ -86,7 +87,6 @@ namespace RestSharpProject
         [Test]
         public async Task CheckUpdateAddressTest()
         {
-            int successCode = 200;
             var address = new Address
             {
                 Street = "Kwiatowa",
@@ -95,51 +95,38 @@ namespace RestSharpProject
                 Country = "Poland"
             };
 
-            var client = new RestClient("https://objwsw.azurewebsites.net/api/addresses");
-            client.Authenticator = new HttpBasicAuthenticator("testuser", "testuser");
             var request = new RestRequest().AddJsonBody(address);
             var responsePost = await client.PostAsync(request);
             var responseBodyForAddedAddress = responsePost.Content;
             Address addedAddress = JsonSerializer.Deserialize<Address>(responseBodyForAddedAddress);
+
             var id = addedAddress.Id;
-
-            string street = "Owocowa";
-            string postalCode = "22-610";
-            string city = "Kraków";
-            string country = "Poland";
-
             var newAddress = new Address
             {
                 Id = id,
-                Street = street,
-                PostalCode = postalCode,
-                City = city,
-                Country = country
+                Street = "Owocowa",
+                PostalCode = "22-610",
+                City = "Kraków",
+                Country = "Poland"
             };
 
             var updateRequest = new RestRequest($"/{id}").AddJsonBody(newAddress);
             var responsePut = await client.PutAsync(updateRequest);
-
             var responseBodyForUpdatedAddress = responsePut.Content;
             Address actualAddress = JsonSerializer.Deserialize<Address>(responseBodyForUpdatedAddress);
-
             var statusCode = responsePut.StatusCode;
             int numericStatusCode = (int)statusCode;
 
-            numericStatusCode.Should().Be(successCode);
-            numericStatusCode.Should().Be(successCode);
-            actualAddress.Street.Should().Be(street);
-            actualAddress.PostalCode.Should().Be(postalCode);
-            actualAddress.City.Should().Be(city);
-            actualAddress.Country.Should().Be(country);
+            numericStatusCode.Should().Be(successCode200);
+            actualAddress.Street.Should().Be("Owocowa");
+            actualAddress.PostalCode.Should().Be("22-610");
+            actualAddress.City.Should().Be("Kraków");
+            actualAddress.Country.Should().Be("Poland");
         }
 
         [Test]
         public async Task CheckDeleteAddressTest()
         {
-            var client = new RestClient("https://objwsw.azurewebsites.net/api/addresses");
-            client.Authenticator = new HttpBasicAuthenticator("testuser", "testuser");
-
             var address = new Address
             {
                 Street = "Kwiatowa1",
@@ -148,34 +135,22 @@ namespace RestSharpProject
                 Country = "Poland"
             };
 
-            int successCode = 200;
-
             var request = new RestRequest().AddJsonBody(address);
             var response = await client.PostAsync(request);
-
             var responseBody = response.Content;
             Address addedAddress = JsonSerializer.Deserialize<Address>(responseBody);
-
             var id = addedAddress.Id;
-
             var deleteRequest = new RestRequest($"/{id}");
             var responseStatus = await client.DeleteAsync(deleteRequest);
-
             var statusCode = responseStatus.StatusCode;
             int numericStatusCode = (int)statusCode;
 
-            numericStatusCode.Should().Be(successCode);
+            numericStatusCode.Should().Be(successCode200);
         }
 
         [Test]
         public async Task CheckErrorMessageWhenAddressIsNotFoundTest()
         {
-            var client = new RestClient("https://objwsw.azurewebsites.net/api/addresses");
-            client.Authenticator = new HttpBasicAuthenticator("testuser", "testuser");
-
-            int notFoundCode = 404;
-            string expectedMessage = "Request failed with status code NotFound";
-
             try
             {
                 var deleteRequest = new RestRequest($"/{0}");
@@ -187,7 +162,7 @@ namespace RestSharpProject
                 int numericStatusCode = (int)statusCode;
                 var errorMessage = ex.Message;
 
-                numericStatusCode.Should().Be(notFoundCode);
+                numericStatusCode.Should().Be(notFoundCode404);
                 errorMessage.Should().Be(expectedMessage); 
             }
         }
