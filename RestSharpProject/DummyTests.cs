@@ -5,6 +5,7 @@ using RestSharp.Authenticators;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Net.Http;
+using System.Collections.Generic;
 
 namespace RestSharpProject
 {
@@ -16,6 +17,14 @@ namespace RestSharpProject
         int successCode201 = 201;
         int notFoundCode404 = 404;
         string expectedMessage = "Request failed with status code NotFound";
+        string street = "Kwiatowa";
+        string postalCode = "20-466";
+        string city = "Wroc³aw";
+        string country = "Poland";
+        string newStreet = "Lechat";
+        string newPostalCode = "56-930";
+        string newCity = "Paris";
+        string newCountry = "France";
 
         [SetUp]
         public void BeforeEach()
@@ -26,57 +35,58 @@ namespace RestSharpProject
         [Test]
         public async Task CheckGetAddressessTest()
         {
+            //arrange
             var request = new RestRequest();
             var response = await client.GetAsync(request);
+
+            //act
             var statusCode = response.StatusCode;
             int numericStatusCode = (int)statusCode;
 
+            //assert
             numericStatusCode.Should().Be(successCode200);
         }
 
-        [Test]
-        [TestCase(1)]
-        public async Task CheckGetAddressByIdTest(int id)
+        [Test, TestCaseSource(typeof(TestData), "AddressGetTestData")]
+        public async Task CheckGetAddressByIdTest(int id, string street, string postalCode, string city, string country)
         {
-            string expectedStreet = "4649 Peachwillow";
-            string expectedCity = "Test";
-            string expectedPostalCode = "20-653";
-            string expectedCountry = "Test";
-
+            //arrange
             var request = new RestRequest($"/{id}");
             var response = await client.GetAsync(request);
+
+            //act
             var responseBody = response.Content;
             Address address = JsonSerializer.Deserialize<Address>(responseBody);
 
-            address.Street.Should().Be(expectedStreet);
-            address.PostalCode.Should().Be(expectedPostalCode);
-            address.City.Should().Be(expectedCity);
-            address.Country.Should().Be(expectedCountry);
+            //assert
+            address.Street.Should().Be(street);
+            address.PostalCode.Should().Be(postalCode);
+            address.City.Should().Be(city);
+            address.Country.Should().Be(country);
         }
 
         [Test]
         public async Task CheckPostAddressTest()
         {
-            string street = "Kwiatowa";
-            string postalCode = "20-653";
-            string city = "Wroclaw";
-            string country = "Poland";
-
+            //arrange
             var address = new Address
-            {
-                Street = street,
-                PostalCode = postalCode,
-                City = city,
-                Country = country
-            };
+                {
+                    Street = street,
+                    PostalCode = postalCode,
+                    City = city,
+                    Country = country
+                };
 
             var request = new RestRequest().AddJsonBody(address);
             var response = await client.PostAsync(request);
+
+            //act
             var responseBody = response.Content;
             Address actualAddress = JsonSerializer.Deserialize<Address>(responseBody);
             var statusCode = response.StatusCode;
             int numericStatusCode = (int)statusCode;
 
+            //assert
             numericStatusCode.Should().Be(successCode201);
             actualAddress.Street.Should().Be(street);
             actualAddress.PostalCode.Should().Be(postalCode);
@@ -87,56 +97,65 @@ namespace RestSharpProject
         [Test]
         public async Task CheckUpdateAddressTest()
         {
+            //arrange
             var address = new Address
             {
-                Street = "Kwiatowa",
-                PostalCode = "20-600",
-                City = "Wroclaw",
-                Country = "Poland"
+                Street = street,
+                PostalCode = postalCode,
+                City = city,
+                Country = country
             };
 
             var request = new RestRequest().AddJsonBody(address);
             var responsePost = await client.PostAsync(request);
+
+            //act
             var responseBodyForAddedAddress = responsePost.Content;
             Address addedAddress = JsonSerializer.Deserialize<Address>(responseBodyForAddedAddress);
-
             var id = addedAddress.Id;
+
             var newAddress = new Address
             {
                 Id = id,
-                Street = "Owocowa",
-                PostalCode = "22-610",
-                City = "Kraków",
-                Country = "Poland"
+                Street = newStreet,
+                PostalCode = newPostalCode,
+                City = newCity,
+                Country = newCountry
             };
 
             var updateRequest = new RestRequest($"/{id}").AddJsonBody(newAddress);
             var responsePut = await client.PutAsync(updateRequest);
+
+            //act
             var responseBodyForUpdatedAddress = responsePut.Content;
             Address actualAddress = JsonSerializer.Deserialize<Address>(responseBodyForUpdatedAddress);
             var statusCode = responsePut.StatusCode;
             int numericStatusCode = (int)statusCode;
 
+            //assert
             numericStatusCode.Should().Be(successCode200);
-            actualAddress.Street.Should().Be("Owocowa");
-            actualAddress.PostalCode.Should().Be("22-610");
-            actualAddress.City.Should().Be("Kraków");
-            actualAddress.Country.Should().Be("Poland");
+            actualAddress.Street.Should().Be(newStreet);
+            actualAddress.PostalCode.Should().Be(newPostalCode);
+            actualAddress.City.Should().Be(newCity);
+            actualAddress.Country.Should().Be(newCountry);
         }
 
         [Test]
         public async Task CheckDeleteAddressTest()
         {
+            //arrange
             var address = new Address
             {
-                Street = "Kwiatowa1",
-                PostalCode = "20-653",
-                City = "Wroclaw",
-                Country = "Poland"
+                Street = street,
+                PostalCode = postalCode,
+                City = city,
+                Country = country
             };
 
             var request = new RestRequest().AddJsonBody(address);
             var response = await client.PostAsync(request);
+
+            //act
             var responseBody = response.Content;
             Address addedAddress = JsonSerializer.Deserialize<Address>(responseBody);
             var id = addedAddress.Id;
@@ -145,23 +164,27 @@ namespace RestSharpProject
             var statusCode = responseStatus.StatusCode;
             int numericStatusCode = (int)statusCode;
 
+            //assert
             numericStatusCode.Should().Be(successCode200);
         }
 
         [Test]
         public async Task CheckErrorMessageWhenAddressIsNotFoundTest()
         {
+            //arrange
             try
             {
                 var deleteRequest = new RestRequest($"/{0}");
                 var response = await client.DeleteAsync(deleteRequest);
             }
+            //act
             catch (HttpRequestException ex)
             {
                 var statusCode = ex.StatusCode;
                 int numericStatusCode = (int)statusCode;
                 var errorMessage = ex.Message;
 
+             //assert
                 numericStatusCode.Should().Be(notFoundCode404);
                 errorMessage.Should().Be(expectedMessage); 
             }
