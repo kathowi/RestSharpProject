@@ -13,5 +13,21 @@ namespace RestSharpProject
                 yield return new TestCaseData(2, "Swieta 112321", "10-653", "Wroclaw", "Poland").SetName("Id 2");
             }
         }
+        
+        public static IEnumerable<TestCaseData> AddressPostTestData
+        {
+           get
+            {
+                yield return new TestCaseData("4649 Peachwillow", "20-653", "Wro", "Poland");
+            }
+        }
+
+        public static IEnumerable<TestCaseData> AddressUpdateTestData
+        {
+            get
+            {
+                yield return new TestCaseData("4649 Peachwillow", "20-653", "Wro", "Poland", "31 Geschichte", "29-789", "Berlin", "Germany");
+            }
+        }
     }
 }

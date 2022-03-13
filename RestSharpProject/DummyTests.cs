@@ -5,7 +5,6 @@ using RestSharp.Authenticators;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Net.Http;
-using System.Collections.Generic;
 
 namespace RestSharpProject
 {
@@ -17,14 +16,6 @@ namespace RestSharpProject
         int successCode201 = 201;
         int notFoundCode404 = 404;
         string expectedMessage = "Request failed with status code NotFound";
-        string street = "Kwiatowa";
-        string postalCode = "20-466";
-        string city = "Wroc³aw";
-        string country = "Poland";
-        string newStreet = "Lechat";
-        string newPostalCode = "56-930";
-        string newCity = "Paris";
-        string newCountry = "France";
 
         [SetUp]
         public void BeforeEach()
@@ -48,6 +39,7 @@ namespace RestSharpProject
         }
 
         [Test, TestCaseSource(typeof(TestData), "AddressGetTestData")]
+
         public async Task CheckGetAddressByIdTest(int id, string street, string postalCode, string city, string country)
         {
             //arrange
@@ -65,8 +57,9 @@ namespace RestSharpProject
             address.Country.Should().Be(country);
         }
 
-        [Test]
-        public async Task CheckPostAddressTest()
+        [Test, TestCaseSource(typeof(TestData), "AddressPostTestData")]
+
+        public async Task CheckPostAddressTest(string street, string postalCode, string city, string country)
         {
             //arrange
             var address = new Address
@@ -94,8 +87,10 @@ namespace RestSharpProject
             actualAddress.Country.Should().Be(country);
         }
 
-        [Test]
-        public async Task CheckUpdateAddressTest()
+        [Test, TestCaseSource(typeof(TestData), "AddressUpdateTestData")]
+
+        public async Task CheckUpdateAddressTest
+            (string street, string postalCode, string city, string country, string newStreet, string newPostalCode, string newCity, string newCountry)
         {
             //arrange
             var address = new Address
@@ -140,8 +135,9 @@ namespace RestSharpProject
             actualAddress.Country.Should().Be(newCountry);
         }
 
-        [Test]
-        public async Task CheckDeleteAddressTest()
+        [Test, TestCaseSource(typeof(TestData), "AddressPostTestData")]
+
+        public async Task CheckDeleteAddressTest(string street, string postalCode, string city, string country)
         {
             //arrange
             var address = new Address
@@ -169,6 +165,7 @@ namespace RestSharpProject
         }
 
         [Test]
+
         public async Task CheckErrorMessageWhenAddressIsNotFoundTest()
         {
             //arrange
