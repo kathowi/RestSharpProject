@@ -14,5 +14,22 @@ namespace RestSharpProject
         public string Country { get; set; }
         [JsonProperty("Id")]
         public int Id { get; set; }
+
+        public Address(string street, string postalCode, string city, string country)
+        {
+            Street = street;
+            PostalCode = postalCode;
+            City = city;                
+            Country = country;
+        }
+
+        public Address(int id, string street, string postalCode, string city, string country)
+        {
+            Id = id;
+            Street = street;
+            PostalCode = postalCode;
+            City = city;
+            Country = country;
+        }
     }
 }
